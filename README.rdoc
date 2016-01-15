@@ -1,0 +1,29 @@
+= Seeded strategy for Database Cleaner 
+
+Restore the database to a seeded state between tests without using the Transaction strategy.
+
+== Why?
+
+The excellent Database Cleaner library provides a way to clean a rails database between tests, for those not opting for Rails' out-of-the-box fixtures approach to testing.
+
+This gem offers transaction, deletion, and trunctation strategies for restoring the state of the database between test runs.
+
+This gem allows you to restore the database to a seeded state, without needing to run tests within an SQL transactions.
+
+== How?
+
+When running your test suite, a code block is run once to generate a seeds file. Then, before each test is run, your database is restored using mysql directly.
+
+Add the following to your RSpec.setup block:
+
+DatabaseCleaner.prepare_with(:seeded) do
+  # Your seeds block, to be run once to generate a seeds file
+end
+
+== Todo
+
+- Add support for other DBMSs
+
+== Development & Feedback
+
+Have questions or encountered problems? Please use the {issue tracker}[https://github.com/michaeldawson/database_cleaner_seeded/issues]. If you would like to contribute to this project, fork this repository, then run +bundle+ and +rake+ to run the tests. Pull requests appreciated.
