@@ -1,24 +1,47 @@
-= Seeded strategy for Database Cleaner 
+= Seeded strategy for Database Cleaner
 
-Restore the database to a seeded state between tests without using the Transaction strategy.
+Restore the database to a seeded state between tests in a way that's compatible with feature tests (run in multiple threads).
 
 == Why?
 
-The excellent Database Cleaner library provides a way to clean a rails database between tests, for those not opting for Rails' out-of-the-box fixtures approach to testing.
+The excellent Database Cleaner library provides a way to clean a rails database between tests for those not opting for Rails' out-of-the-box approach to testing using transactional fixtures. The gem's 'transaction' strategy is a fast way to rollback database state between isolated tests, but it isn't compatible with tests that run with multiple threads (most integrated tests).
 
-This gem offers transaction, deletion, and trunctation strategies for restoring the state of the database between test runs.
-
-This gem allows you to restore the database to a seeded state, without needing to run tests within an SQL transactions.
+This gem allows you to restore the database to a seeded state using direct DBMS operations (using an SQL restore function). Ideally, you shouldn't have many seeds to run between tests, and this gem won't be necessary. But if you have a test suite with a reliance on common seeds, this gem may speed up your test suite. I've seen speed benefits of up to 30% with some older projects.
 
 == How?
 
-When running your test suite, a code block is run once to generate a seeds file. Then, before each test is run, your database is restored using mysql directly.
+Before your feature test runs, a code block is run once to generate a raw seeds file. Then, before each test is run, your database is restored using your DBMS using direct injection of those seeds. This is usually significantly faster than generating seeds using Ruby, and inserting them individually, but because of the overhead associated with this approach, YMMV.
 
-Add the following to your RSpec.setup block:
+Currently, this gem only supports MYSQL, and works by running `mysql database='database_name' < fixtures_file.sql` between each test.
 
-DatabaseCleaner.prepare_with(:seeded) do
-  # Your seeds block, to be run once to generate a seeds file
+To get started, add the following to your RSpec.setup block:
+
+```
+# spec/rails_helper.rb
+
+include SeedDataHelper
+
+RSpec.configure do |config|
+  ...
+
+  DatabaseCleaner.prepare_with(:seeded) do
+    # Your seeds block, to be run once to generate a seeds file
+    # e.g.:
+
+    seed_for_every_feature_test
+  end
 end
+```
+
+```
+# spec/support/seed_data_helper.rb
+
+def seed_for_every_test
+  seed_foos
+  seed_bars
+  seed_bazzes
+end
+```
 
 == Todo
 
