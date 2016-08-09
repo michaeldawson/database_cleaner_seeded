@@ -6,16 +6,29 @@
 
 require 'database_cleaner/active_record/deletion'
 require 'database_cleaner/active_record/seeded/adapter/mysql'
+require 'database_cleaner/active_record/seeded/configuration'
 
 module DatabaseCleaner
   module ActiveRecord
     class Seeded < Deletion
+      class << self
+        attr_writer :configuration
+
+        def configure
+          yield(configuration)
+        end
+
+        def configuration
+          @configuration ||= Configuration.new
+        end
+      end
+
       def start
         adapter.inject_seeds_from_fixtures_file
       end
 
       def prepare(&seed_data_proc)
-        generate_seeds(seed_data_proc) if regenerate_seeds?
+        generate_seeds(seed_data_proc) unless skip_seeds_generation?
         clean
       end
 
@@ -30,17 +43,19 @@ module DatabaseCleaner
         adapter.dump_database_to_fixtures_file
       end
 
-      def regenerate_seeds?
-        # raise "The option for 'regenerate_seeds' must be a Proc" if config.regenerate_seeds && !config.regenerate_seeds.respond_to?(:call)
-        # regenerate_seeds_proc = config.regenerate_seeds.call if config.regenerate_seeds
-        # no_seed_file_present = File.exist?(seeds_file_path)
-        #
-        # config.regenerate_seeds ?  : true
-        !! ENV['RESEED']
+      # If the user has configured the gem to skip seeds generation, return
+      # true, but only if we already have a seeds file that we can use.
+      def skip_seeds_generation?
+        raise "The option for 'skip_seed_regeneration' must be a Proc" if skip_seeds_proc && !skip_seeds_proc.respond_to?(:call)
+        skip_seeds_proc.try(:call) && File.exists?(seeds_file_path)
       end
 
       def seeds_file_path
-        'spec/fixtures/feature_seeds.sql'
+        @seeds_file_path ||= self.class.configuration.seeds_file_path
+      end
+
+      def skip_seeds_proc
+        @skip_seeds_proc ||= self.class.configuration.skip_seed_regeneration
       end
     end
   end

@@ -29,7 +29,7 @@ module DatabaseCleaner
           private
 
           def configuration
-            @configuration ||= ::ActiveRecord::Base.configurations["test"]
+            @configuration ||= ::ActiveRecord::Base.configurations['test']
           end
 
           def port
@@ -37,15 +37,15 @@ module DatabaseCleaner
           end
 
           def user
-            @user ||= configuration["username"] || 'root'
+            @user ||= configuration['username'] || 'root'
           end
 
           def host
-            @host ||= configuration["host"]
+            @host ||= configuration['host']
           end
 
           def database
-            @database ||= configuration["database"]
+            @database ||= configuration['database']
           end
 
           def ignore_tables
