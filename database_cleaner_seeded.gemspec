@@ -11,4 +11,6 @@ Gem::Specification.new do |s|
   s.license       = 'MIT'
 
   s.add_dependency('database_cleaner')
+  s.add_dependency('activerecord')
+  s.add_dependency('rspec')
 end
