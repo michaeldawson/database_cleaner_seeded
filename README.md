@@ -25,7 +25,7 @@ gem 'database_cleaner_seeded'
 ```ruby
 # spec/support/seed_data_helper.rb
 
-def seed_for_every_test
+def seed_for_every_feature_test
   seed_foos
   seed_bars
   seed_bazzes
